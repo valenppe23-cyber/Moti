@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Valentina & Él ✦</title>
+  <title>Valentina & Juan ✦</title>
   <link
     href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap"
     rel="stylesheet">
@@ -709,7 +709,7 @@
     <!-- ══ ÉL ══ -->
     <div class="column col-el">
       <div class="col-head">
-        <h2>Él</h2>
+        <h2>Juan</h2>
         <p>hoy diste lo mejor</p>
       </div>
 
@@ -809,6 +809,9 @@
   </div>
 
   <div class="bottom-bar">
+    <div style="margin-bottom: 2rem;">
+      <button id="guardar-dia-btn" class="reset-btn" style="background: var(--olive-light); color: white; padding: 1.2rem 3rem; font-size: 1rem; margin-bottom: 1rem; border-radius: 50px; cursor: pointer; border: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onclick="guardarDia()">Guardar Día</button>
+    </div>
     <button class="reset-btn" onclick="resetAll()">↺ nuevo día</button>
     <p class="footer-note">cada día es una nueva oportunidad de ser mejores ✦</p>
   </div>
@@ -827,7 +830,7 @@
       const s = state[who];
       let pts = 0;
       MEALS.forEach(m => { if (s[m] === 'yes') pts++; });
-      if (s.postre) pts++;
+      // postre ya no suma puntos
       if (s.ejercicio) pts++;
       if (s.aprendi) pts++;
       if (s.trabajo) pts++;
@@ -844,10 +847,8 @@
         if (state.valen[m] === 'yes') fv++;
         if (state.el[m] === 'yes') fe++;
       });
-      if (state.valen.postre) fv++;
-      if (state.el.postre) fe++;
-      document.getElementById('foodPtsV').textContent = fv + ' / 5 pts';
-      document.getElementById('foodPtsE').textContent = fe + ' / 5 pts';
+      document.getElementById('foodPtsV').textContent = fv + ' / 4 pts';
+      document.getElementById('foodPtsE').textContent = fe + ' / 4 pts';
 
       // totals
       animateScore('scoreV', sv);
@@ -856,9 +857,25 @@
       // lead text
       const lv = document.getElementById('leadV');
       const le = document.getElementById('leadE');
-      if (sv > se) { lv.textContent = '¡Va ganando! 🏆'; le.textContent = ''; }
-      else if (se > sv) { le.textContent = '¡Va ganando! 🏆'; lv.textContent = ''; }
-      else { lv.textContent = ''; le.textContent = ''; }
+
+      const frasesLindas = ["¡Esfuérzate más! 💪", "¡Ve y diviértete! ✨", "Sigue así 🌟", "¡Tú puedes! 🌸"];
+      const getRandomFrase = () => frasesLindas[Math.floor(Math.random() * frasesLindas.length)];
+
+      if (sv > se) { 
+        lv.textContent = '¡Va ganando! 🏆 ¡Ve y diviértete! ✨'; 
+        le.textContent = getRandomFrase(); 
+      }
+      else if (se > sv) { 
+        le.textContent = '¡Va ganando! 🏆 ¡Ve y diviértete! ✨'; 
+        lv.textContent = getRandomFrase(); 
+      }
+      else if (sv > 0 || se > 0) { 
+        lv.textContent = '¡Empate! 🤝'; 
+        le.textContent = '¡Empate! 🤝'; 
+      }
+      else {
+        lv.textContent = ''; le.textContent = '';
+      }
     }
 
     let scoreCache = { scoreV: 0, scoreE: 0 };
@@ -938,6 +955,7 @@
 
     updateUI();
   </script>
+  <script src="api.js"></script>
 </body>
 
 </html>
