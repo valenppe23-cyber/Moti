@@ -29,12 +29,17 @@ async function guardarDia() {
     });
     
     if (!response.ok) {
-      throw new Error("Error en la respuesta del servidor");
+      let errorMsg = "Error en la respuesta del servidor";
+      try {
+        const errorData = await response.json();
+        if (errorData.error) errorMsg = errorData.error;
+      } catch (e) {}
+      throw new Error(errorMsg);
     }
     
     alert("¡Día guardado con éxito! 🎉");
   } catch (err) {
-    alert("Hubo un error al guardar el día. Revisa tu conexión y que la URL esté bien configurada en Vercel.");
+    alert("Hubo un error al guardar el día:\n\n" + err.message + "\n\nAsegúrate de que la URL de Apps Script esté configurada en Vercel.");
     console.error(err);
   } finally {
     btn.textContent = originalText;

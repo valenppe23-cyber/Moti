@@ -4,5 +4,8 @@
   "private": true,
   "engines": {
     "node": ">=18.x"
+  },
+  "dependencies": {
+    "googleapis": "^122.0.0"
   }
 }
