@@ -86,6 +86,11 @@ async function cargarDia() {
       if (todayRow) {
         syncUIWithState(todayRow);
       }
+      
+      if (data.rows) {
+        window.historicoDias = data.rows;
+        renderHistorial();
+      }
     }
   } catch(e) {
     console.error("Error al sincronizar datos:", e);
@@ -138,4 +143,74 @@ function syncUIWithState(remoteRow) {
   }
   
   if (typeof updateUI === 'function') updateUI();
+}
+
+// --- Historial Modal Logic ---
+
+function renderHistorial() {
+  const container = document.getElementById('historial-feed');
+  if (!container || !window.historicoDias || window.historicoDias.length === 0) return;
+  
+  const rows = [...window.historicoDias].reverse(); // newest first
+  container.innerHTML = '';
+
+  rows.forEach(r => {
+    // Prevent empty rows
+    if (!r.fecha) return;
+
+    const scoreV = Number(r.valen.total) || 0;
+    const scoreE = Number(r.el.total) || 0;
+    
+    let winnerIcon = '🤝';
+    let winnerClass = '';
+    
+    if (scoreV > scoreE) {
+      winnerIcon = '🌹 Valen';
+      winnerClass = 'color: #b5625a; font-weight: bold;';
+    } else if (scoreE > scoreV) {
+      winnerIcon = '🌿 Él';
+      winnerClass = 'color: #8aa878; font-weight: bold;';
+    } else {
+      winnerIcon = '🤝 Empate';
+      winnerClass = 'color: var(--ink-core); font-weight: bold;';
+    }
+
+    let dateFormatted = r.fecha;
+    const parts = r.fecha.split('-');
+    if (parts.length === 3) {
+      dateFormatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    const card = document.createElement('div');
+    card.style.cssText = "background: white; padding: 1.2rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: left;";
+    card.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; border-bottom: 1px dashed rgba(0,0,0,0.1); padding-bottom: 0.6rem;">
+        <span style="font-size: 0.9rem; color: var(--ink-soft); font-weight: 500;">📅 ${r.dia ? (r.dia + ' - ') : ''}${dateFormatted}</span>
+        <span style="${winnerClass} font-size: 0.95rem;">${winnerIcon}</span>
+      </div>
+      <div style="display: flex; justify-content: space-around; font-family: 'Playfair Display', serif; font-size: 1.2rem;">
+        <div style="text-align: center; width: 45%;">
+          <span style="font-size: 0.75rem; display: block; font-family:'Inter', sans-serif; color: var(--ink-soft); text-transform: uppercase;">Valen</span>
+          <span style="color: #b5625a;">${scoreV} pts</span>
+        </div>
+        <div style="width: 1px; background: rgba(0,0,0,0.05);"></div>
+        <div style="text-align: center; width: 45%;">
+          <span style="font-size: 0.75rem; display: block; font-family:'Inter', sans-serif; color: var(--ink-soft); text-transform: uppercase;">Él</span>
+          <span style="color: #8aa878;">${scoreE} pts</span>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function toggleHistorial() {
+  const modal = document.getElementById('historial-modal');
+  if (modal.style.opacity === '1') {
+    modal.style.opacity = '0';
+    modal.style.pointerEvents = 'none';
+  } else {
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'all';
+  }
 }

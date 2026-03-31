@@ -564,6 +564,17 @@
     <style>@keyframes spin { 100% { transform: rotate(360deg); } }</style>
   </div>
 
+  <!-- HISTORIAL MODAL -->
+  <div id="historial-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(250, 246, 240, 0.95); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 9999; display: flex; flex-direction: column; pointer-events: none; opacity: 0; transition: opacity 0.3s ease;">
+    <div style="padding: 1.5rem; text-align: center; border-bottom: 1px solid rgba(138, 168, 120, 0.3); position: relative; background: var(--bg-cream);">
+      <h2 style="font-family: 'Playfair Display', serif; color: var(--ink-dark); margin: 0; font-size: 1.4rem;">✦ Historial de Combates ✦</h2>
+      <button onclick="toggleHistorial()" style="position: absolute; right: 1.5rem; top: 1.5rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--ink-soft);">✕</button>
+    </div>
+    <div id="historial-feed" style="overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 1rem; padding: 1.5rem 1rem 5rem 1rem;">
+      <div style="text-align: center; color: var(--ink-soft); font-size: 0.9rem; margin-top: 2rem;">Cargando historial... 🌿</div>
+    </div>
+  </div>
+
   <!-- HERO -->
   <div class="hero">
     <div class="hero-photos">
@@ -822,7 +833,10 @@
     <div style="margin-bottom: 2rem;">
       <button id="guardar-dia-btn" class="reset-btn" style="background: var(--olive-light); color: white; padding: 1.2rem 3rem; font-size: 1rem; margin-bottom: 1rem; border-radius: 50px; cursor: pointer; border: none; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.1);" onclick="guardarDia()">Guardar Día</button>
     </div>
-    <button class="reset-btn" onclick="resetAll()">↺ nuevo día</button>
+    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
+      <button class="reset-btn" onclick="resetAll()">↺ nuevo día</button>
+      <button class="reset-btn" onclick="toggleHistorial()">🗓️ ver historial</button>
+    </div>
     <p class="footer-note">cada día es una nueva oportunidad de ser mejores ✦</p>
   </div>
 
