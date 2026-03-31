@@ -46,3 +46,96 @@ async function guardarDia() {
     btn.disabled = false;
   }
 }
+
+/* --- Hydration Logic --- */
+
+const SABIAS_QUE_FACTS = [
+  "El cuerpo humano adulto tiene 206 huesos, pero un bebé nace con casi 300.",
+  "Comer 2 kiwis antes de ir a dormir mejora la calidad del sueño debido a su alto contenido de serotonina.",
+  "El músculo más fuerte y con más resistencia de tu cuerpo en relación a su tamaño es el de la mandíbula (masetero).",
+  "Moverte tan solo 30 minutos al día reduce en gran medida el riesgo de problemas cardíacos y fortalece tu mente.",
+  "Las personas más creativas suelen tener picos de actividad cerebral durante la noche.",
+  "La piel es el órgano más grande de tu cuerpo y se renueva por completo cada 28 días.",
+  "Reír a carcajadas durante 15 minutos puede quemar hasta 40 calorías. ¡Sonríe más!",
+  "El aguacate o palta tiene más potasio que una banana, lo que ayuda a prevenir calambres musculares."
+];
+
+// Show random fact
+const factEl = document.getElementById('sabias-que-text');
+if (factEl) {
+  factEl.textContent = SABIAS_QUE_FACTS[Math.floor(Math.random() * SABIAS_QUE_FACTS.length)];
+}
+
+// Fetch today's data
+document.addEventListener('DOMContentLoaded', cargarDia);
+
+async function cargarDia() {
+  try {
+    const response = await fetch(API_URL);
+    if (response.ok) {
+      const data = await response.json();
+      
+      const d = new Date();
+      const [day, month, year] = d.toLocaleDateString('es-AR', {
+        timeZone: 'America/Argentina/Buenos_Aires',
+        year: 'numeric', month: '2-digit', day: '2-digit'
+      }).split('/');
+      const todayStr = `${year}-${month}-${day}`;
+      
+      const todayRow = data.rows ? data.rows.find(r => r.fecha === todayStr) : null;
+      if (todayRow) {
+        syncUIWithState(todayRow);
+      }
+    }
+  } catch(e) {
+    console.error("Error al sincronizar datos:", e);
+  } finally {
+    // Hide overlay
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 500);
+    }
+  }
+}
+
+function syncUIWithState(remoteRow) {
+  if (!remoteRow || !remoteRow.valen || !remoteRow.el) return;
+
+  ['valen', 'el'].forEach(who => {
+    const rData = remoteRow[who];
+    const sData = state[who];
+
+    // Meals
+    ['desayuno', 'almuerzo', 'merienda', 'cena'].forEach(m => {
+      sData[m] = rData[m]; // 'yes', 'no', null
+      if (sData[m] === 'yes') {
+        const btn = document.getElementById(`${who}-${m}-yes`);
+        if (btn) btn.classList.add('yes');
+      } else if (sData[m] === 'no') {
+        const btn = document.getElementById(`${who}-${m}-no`);
+        if (btn) btn.classList.add('no');
+      }
+    });
+
+    // Switches
+    ['postre', 'ejercicio', 'aprendi', 'trabajo'].forEach(k => {
+      sData[k] = rData[k] === true || String(rData[k]).toLowerCase() === 'true'; // Parse correctly
+      if (sData[k]) {
+        const sw = document.getElementById(`sw-${who}-${k}`);
+        if(sw) sw.classList.add('on');
+      }
+    });
+  });
+
+  // Textareas
+  const textareas = document.querySelectorAll("textarea");
+  if (textareas.length >= 4) {
+    if (remoteRow.valen.agradezco) textareas[0].value = remoteRow.valen.agradezco;
+    if (remoteRow.valen.manana) textareas[1].value = remoteRow.valen.manana;
+    if (remoteRow.el.agradezco) textareas[2].value = remoteRow.el.agradezco;
+    if (remoteRow.el.manana) textareas[3].value = remoteRow.el.manana;
+  }
+  
+  if (typeof updateUI === 'function') updateUI();
+}

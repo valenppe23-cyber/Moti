@@ -27,8 +27,51 @@ export default async function handler(req, res) {
     return;
   }
 
+  if (!SPREADSHEET_ID) {
+    return res.status(500).json({ error: "Falta configurar la variable 'sheetsid' en Vercel." });
+  }
+
+  if (req.method === 'GET') {
+    try {
+      const SHEET_NAME = 'Registro';
+      const sheets = await getSheetsInstance();
+      const response = await sheets.spreadsheets.values.get({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `'${SHEET_NAME}'!A4:Y`,
+      });
+      
+      const rows = response.data.values || [];
+      const parsedRows = rows.map(r => {
+        while(r.length < 25) r.push(''); // Llenar columnas vacías
+
+        const vComida = (val) => val === '✓' ? 'yes' : null;
+        const vSwitch = (val) => val === '✓' ? true : false;
+
+        return {
+          fecha: r[0],
+          dia: r[1],
+          valen: {
+            desayuno: vComida(r[2]), almuerzo: vComida(r[3]), merienda: vComida(r[4]), cena: vComida(r[5]),
+            postre: vSwitch(r[6]), ejercicio: vSwitch(r[7]), aprendi: vSwitch(r[8]), trabajo: vSwitch(r[9]),
+            total: r[10], agradezco: r[11], manana: r[12]
+          },
+          el: {
+            desayuno: vComida(r[13]), almuerzo: vComida(r[14]), merienda: vComida(r[15]), cena: vComida(r[16]),
+            postre: vSwitch(r[17]), ejercicio: vSwitch(r[18]), aprendi: vSwitch(r[19]), trabajo: vSwitch(r[20]),
+            total: r[21], agradezco: r[22], manana: r[23]
+          },
+          ganador: r[24]
+        };
+      });
+      return res.status(200).json({ rows: parsedRows });
+    } catch (e) {
+      console.error(e);
+      return res.status(500).json({ error: e.message });
+    }
+  }
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: "Only POST allowed." });
+    return res.status(405).json({ error: "Method Not Allowed." });
   }
 
   if (!SPREADSHEET_ID) {
