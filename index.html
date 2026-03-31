@@ -1171,6 +1171,16 @@
 
     updateUI();
   </script>
+  <script>
+    // Fallback de seguridad: ocultar el overlay después de 3 segundos forzadamente
+    setTimeout(function() {
+      var overlay = document.getElementById('loading-overlay');
+      if (overlay) {
+        overlay.style.opacity = '0';
+        setTimeout(function() { if(overlay.parentNode) overlay.remove(); }, 500);
+      }
+    }, 3000);
+  </script>
   <script src="api.js"></script>
 </body>
 

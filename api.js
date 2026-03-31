@@ -9,16 +9,14 @@ async function guardarDia() {
   btn.disabled = true;
 
   const payload = {
-    valen: { 
-      ...state.valen, 
+    valen: Object.assign({}, state.valen, { 
       manana: document.querySelectorAll("textarea")[1].value, 
       agradezco: document.querySelectorAll("textarea")[0].value 
-    },
-    el: { 
-      ...state.el, 
+    }),
+    el: Object.assign({}, state.el, { 
       manana: document.querySelectorAll("textarea")[3].value, 
       agradezco: document.querySelectorAll("textarea")[2].value 
-    }
+    })
   };
 
   try {
