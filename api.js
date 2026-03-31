@@ -89,7 +89,7 @@ async function cargarDia() {
       
       if (data.rows) {
         window.historicoDias = data.rows;
-        renderHistorial();
+        renderCalendar();
       }
     }
   } catch(e) {
@@ -145,72 +145,193 @@ function syncUIWithState(remoteRow) {
   if (typeof updateUI === 'function') updateUI();
 }
 
-// --- Historial Modal Logic ---
+// --- Views and Calendar Logic ---
 
-function renderHistorial() {
-  const container = document.getElementById('historial-feed');
-  if (!container || !window.historicoDias || window.historicoDias.length === 0) return;
+let currentMonthDate = new Date();
+
+function switchView(viewId, btn) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   
-  const rows = [...window.historicoDias].reverse(); // newest first
-  container.innerHTML = '';
-
-  rows.forEach(r => {
-    // Prevent empty rows
-    if (!r.fecha) return;
-
-    const scoreV = Number(r.valen.total) || 0;
-    const scoreE = Number(r.el.total) || 0;
-    
-    let winnerIcon = '🤝';
-    let winnerClass = '';
-    
-    if (scoreV > scoreE) {
-      winnerIcon = '🌹 Valen';
-      winnerClass = 'color: #b5625a; font-weight: bold;';
-    } else if (scoreE > scoreV) {
-      winnerIcon = '🌿 Él';
-      winnerClass = 'color: #8aa878; font-weight: bold;';
-    } else {
-      winnerIcon = '🤝 Empate';
-      winnerClass = 'color: var(--ink-core); font-weight: bold;';
-    }
-
-    let dateFormatted = r.fecha;
-    const parts = r.fecha.split('-');
-    if (parts.length === 3) {
-      dateFormatted = `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-
-    const card = document.createElement('div');
-    card.style.cssText = "background: white; padding: 1.2rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: left;";
-    card.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; border-bottom: 1px dashed rgba(0,0,0,0.1); padding-bottom: 0.6rem;">
-        <span style="font-size: 0.9rem; color: var(--ink-soft); font-weight: 500;">📅 ${r.dia ? (r.dia + ' - ') : ''}${dateFormatted}</span>
-        <span style="${winnerClass} font-size: 0.95rem;">${winnerIcon}</span>
-      </div>
-      <div style="display: flex; justify-content: space-around; font-family: 'Playfair Display', serif; font-size: 1.2rem;">
-        <div style="text-align: center; width: 45%;">
-          <span style="font-size: 0.75rem; display: block; font-family:'Inter', sans-serif; color: var(--ink-soft); text-transform: uppercase;">Valen</span>
-          <span style="color: #b5625a;">${scoreV} pts</span>
-        </div>
-        <div style="width: 1px; background: rgba(0,0,0,0.05);"></div>
-        <div style="text-align: center; width: 45%;">
-          <span style="font-size: 0.75rem; display: block; font-family:'Inter', sans-serif; color: var(--ink-soft); text-transform: uppercase;">Él</span>
-          <span style="color: #8aa878;">${scoreE} pts</span>
-        </div>
-      </div>
-    `;
-    container.appendChild(card);
-  });
+  if (viewId === 'home') {
+    document.getElementById('home-view').classList.add('active');
+    if (btn) btn.classList.add('active');
+  } else {
+    document.getElementById('calendar-view').classList.add('active');
+    if (btn) btn.classList.add('active');
+    renderCalendar();
+  }
 }
 
-function toggleHistorial() {
-  const modal = document.getElementById('historial-modal');
-  if (modal.style.opacity === '1') {
+function changeMonth(offset) {
+  currentMonthDate.setMonth(currentMonthDate.getMonth() + offset);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const grid = document.getElementById('calendar-grid');
+  const monthYearEl = document.getElementById('cal-month-year');
+  if (!grid || !monthYearEl) return;
+  
+  const year = currentMonthDate.getFullYear();
+  const month = currentMonthDate.getMonth();
+  
+  const monthsEs = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  monthYearEl.textContent = `${monthsEs[month]} ${year}`;
+  
+  // Headers
+  const daysHeader = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+  let html = daysHeader.map(d => `<div class="cal-day-header">${d}</div>`).join('');
+  
+  const firstDay = new Date(year, month, 1).getDay();
+  const firstDayIndex = firstDay === 0 ? 6 : firstDay - 1;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  
+  // Empty slots
+  for (let i = 0; i < firstDayIndex; i++) {
+    html += `<div class="cal-cell cal-empty"></div>`;
+  }
+  
+  const today = new Date();
+  
+  const historyMap = {};
+  if (window.historicoDias) {
+    window.historicoDias.forEach(r => {
+      if (r.fecha) historyMap[r.fecha] = r;
+    });
+  }
+  
+  for (let i = 1; i <= daysInMonth; i++) {
+    const isToday = today.getDate() === i && today.getMonth() === month && today.getFullYear() === year;
+    const dateStr = `${year}-${String(month+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+    
+    let cellClass = 'cal-cell';
+    if (isToday) cellClass += ' today';
+    
+    let content = '';
+    const dayData = historyMap[dateStr];
+    
+    if (dayData) {
+      const scoreV = Number(dayData.valen?.total) || 0;
+      const scoreE = Number(dayData.el?.total) || 0;
+      
+      if (scoreV > scoreE) {
+        cellClass += ' winner-valen';
+        content = '<div class="cal-result">🌹</div>';
+      } else if (scoreE > scoreV) {
+        cellClass += ' winner-el';
+        content = '<div class="cal-result">🌿</div>';
+      } else if (scoreE === scoreV && (scoreE > 0 || scoreV > 0)) {
+         cellClass += ' winner-tie';
+         content = '<div class="cal-result">🤝</div>';
+      }
+      
+      html += `<div class="${cellClass}" onclick="showDayDetail('${dateStr}')"><span class="cal-date">${i}</span>${content}</div>`;
+    } else {
+       html += `<div class="${cellClass}"><span class="cal-date">${i}</span></div>`;
+    }
+  }
+  
+  grid.innerHTML = html;
+}
+
+function showDayDetail(dateStr) {
+  const dayData = window.historicoDias?.find(r => r.fecha === dateStr);
+  if (!dayData) return;
+  
+  const scoreV = Number(dayData.valen?.total) || 0;
+  const scoreE = Number(dayData.el?.total) || 0;
+  
+  let winnerText = 'Empate 🤝';
+  if (scoreV > scoreE) winnerText = 'Ganó Valen 🌹';
+  if (scoreE > scoreV) winnerText = 'Ganó Él 🌿';
+  
+  const parts = dateStr.split('-');
+  const dateFormatted = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr;
+  
+  const content = document.getElementById('day-detail-content');
+  content.innerHTML = `
+    <div style="margin-bottom: 2rem; text-align: center;">
+      <h3 style="font-family: 'Playfair Display', serif; color: var(--ink-dark); font-size: 1.5rem; margin-bottom: 0.5rem; margin-top: 0;">${dateFormatted}</h3>
+      <div style="font-size: 1.1rem; color: var(--olive-dark); font-weight: bold;">${winnerText}</div>
+    </div>
+    
+    <div style="display: flex; gap: 1rem; margin-bottom: 2rem;">
+      <div style="flex: 1; background: white; border-radius: 12px; padding: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid rgba(220, 53, 69, 0.1);">
+        <h4 style="text-align: center; color: #b5625a; margin: 0 0 1rem 0;">Valen</h4>
+        <div style="text-align: center; font-size: 2rem; font-weight: bold; color: #b5625a; margin-bottom: 1rem;">${scoreV}</div>
+        <div style="font-size: 0.85rem; color: var(--ink-core);">
+           <p style="margin: 0.3rem 0;"><strong>Desayuno:</strong> ${translateChoice(dayData.valen?.desayuno)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Almuerzo:</strong> ${translateChoice(dayData.valen?.almuerzo)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Merienda:</strong> ${translateChoice(dayData.valen?.merienda)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Cena:</strong> ${translateChoice(dayData.valen?.cena)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Sin Postre:</strong> ${!isTrue(dayData.valen?.postre) ? 'Sí 👏' : 'No 🍰'}</p>
+           <p style="margin: 0.3rem 0;"><strong>Ejercicio:</strong> ${isTrue(dayData.valen?.ejercicio) ? 'Sí 🏃' : 'No'}</p>
+           <p style="margin: 0.3rem 0;"><strong>Aprendí:</strong> ${isTrue(dayData.valen?.aprendi) ? 'Sí 📖' : 'No'}</p>
+           <p style="margin: 0.3rem 0;"><strong>Trabajo:</strong> ${isTrue(dayData.valen?.trabajo) ? 'Sí 💼' : 'No'}</p>
+        </div>
+      </div>
+      
+      <div style="flex: 1; background: white; border-radius: 12px; padding: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid rgba(138, 168, 120, 0.2);">
+        <h4 style="text-align: center; color: #8aa878; margin: 0 0 1rem 0;">Él</h4>
+        <div style="text-align: center; font-size: 2rem; font-weight: bold; color: #8aa878; margin-bottom: 1rem;">${scoreE}</div>
+        <div style="font-size: 0.85rem; color: var(--ink-core);">
+           <p style="margin: 0.3rem 0;"><strong>Desayuno:</strong> ${translateChoice(dayData.el?.desayuno)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Almuerzo:</strong> ${translateChoice(dayData.el?.almuerzo)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Merienda:</strong> ${translateChoice(dayData.el?.merienda)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Cena:</strong> ${translateChoice(dayData.el?.cena)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Sin Postre:</strong> ${!isTrue(dayData.el?.postre) ? 'Sí 👏' : 'No 🍰'}</p>
+           <p style="margin: 0.3rem 0;"><strong>Ejercicio:</strong> ${isTrue(dayData.el?.ejercicio) ? 'Sí 🏃' : 'No'}</p>
+           <p style="margin: 0.3rem 0;"><strong>Aprendí:</strong> ${isTrue(dayData.el?.aprendi) ? 'Sí 📖' : 'No'}</p>
+           <p style="margin: 0.3rem 0;"><strong>Trabajo:</strong> ${isTrue(dayData.el?.trabajo) ? 'Sí 💼' : 'No'}</p>
+        </div>
+      </div>
+    </div>
+    
+    ${dayData.valen?.agradezco || dayData.el?.agradezco ? `
+    <div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+       <h4 style="color: var(--olive-dark); margin: 0 0 1rem 0;">🌿 Agradecimientos</h4>
+       ${dayData.valen?.agradezco ? `<p style="font-size:0.9rem; margin-bottom: 1rem;"><strong>Valen:</strong><br>${dayData.valen.agradezco}</p>` : ''}
+       ${dayData.el?.agradezco ? `<p style="font-size:0.9rem; margin-bottom: 0;"><strong>Él:</strong><br>${dayData.el.agradezco}</p>` : ''}
+    </div>` : ''}
+    
+    ${dayData.valen?.manana || dayData.el?.manana ? `
+    <div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+       <h4 style="color: var(--olive-dark); margin: 0 0 1rem 0;">✨ Para Mañana</h4>
+       ${dayData.valen?.manana ? `<p style="font-size:0.9rem; margin-bottom: 1rem;"><strong>Valen:</strong><br>${dayData.valen.manana}</p>` : ''}
+       ${dayData.el?.manana ? `<p style="font-size:0.9rem; margin-bottom: 0;"><strong>Él:</strong><br>${dayData.el.manana}</p>` : ''}
+    </div>` : ''}
+    
+    <div style="text-align: center;">
+      <button onclick="closeDetailModal()" style="background: var(--ink-soft); color: white; padding: 0.8rem 2rem; border-radius: 50px; border: none; font-weight: bold; cursor: pointer;">Cerrar</button>
+    </div>
+  `;
+  
+  const modal = document.getElementById('day-detail-modal');
+  const modalContent = document.getElementById('day-detail-content');
+  modal.style.opacity = '1';
+  modal.style.pointerEvents = 'all';
+  setTimeout(() => {
+    modalContent.style.transform = 'translateY(0)';
+  }, 10);
+}
+
+function closeDetailModal() {
+  const modal = document.getElementById('day-detail-modal');
+  const modalContent = document.getElementById('day-detail-content');
+  modalContent.style.transform = 'translateY(100%)';
+  setTimeout(() => {
     modal.style.opacity = '0';
     modal.style.pointerEvents = 'none';
-  } else {
-    modal.style.opacity = '1';
-    modal.style.pointerEvents = 'all';
-  }
+  }, 300);
+}
+
+function translateChoice(val) {
+   if (val === 'yes') return 'Bien ✔️';
+   if (val === 'no') return 'Mal ❌';
+   return '-';
+}
+
+function isTrue(val) {
+   return val === true || String(val).toLowerCase() === 'true';
 }

@@ -123,9 +123,9 @@ export default async function handler(req, res) {
     const isVal = (val) => val === 'yes' || val === true;
     
     const vTotal = (+isVal(v.desayuno)) + (+isVal(v.almuerzo)) + (+isVal(v.merienda)) + (+isVal(v.cena))
-                 + (+isVal(v.postre)) + (+isVal(v.ejercicio)) + (+isVal(v.aprendi)) + (+isVal(v.trabajo));
+                 + (isVal(v.postre) ? 0 : 1) + (+isVal(v.ejercicio)) + (+isVal(v.aprendi)) + (+isVal(v.trabajo));
     const eTotal = (+isVal(el.desayuno)) + (+isVal(el.almuerzo)) + (+isVal(el.merienda)) + (+isVal(el.cena))
-                 + (+isVal(el.postre)) + (+isVal(el.ejercicio)) + (+isVal(el.aprendi)) + (+isVal(el.trabajo));
+                 + (isVal(el.postre) ? 0 : 1) + (+isVal(el.ejercicio)) + (+isVal(el.aprendi)) + (+isVal(el.trabajo));
 
     let ganador = "Empate 🤝";
     if (vTotal > eTotal) ganador = "Valentina 🌹";
