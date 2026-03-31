@@ -780,8 +780,8 @@
     <!-- ══ VALENTINA ══ -->
     <div class="column col-valen">
       <div class="col-head">
-        <h2>Valentina</h2>
-        <p>hoy diste lo mejor</p>
+        <h2 style="display: flex; justify-content: space-between; align-items: center;">Valentina <span id="scoreV" style="font-size: 1.5rem; color: var(--olive-dark); background: rgba(255,255,255,0.5); padding: 0.2rem 0.8rem; border-radius: 20px;">0</span></h2>
+        <p id="leadV">hoy diste lo mejor</p>
       </div>
 
       <!-- ALIMENTACIÓN -->
@@ -886,8 +886,8 @@
     <!-- ══ ÉL ══ -->
     <div class="column col-el">
       <div class="col-head">
-        <h2>Juan</h2>
-        <p>hoy diste lo mejor</p>
+        <h2 style="display: flex; justify-content: space-between; align-items: center;">Juan <span id="scoreE" style="font-size: 1.5rem; color: var(--olive-dark); background: rgba(255,255,255,0.5); padding: 0.2rem 0.8rem; border-radius: 20px;">0</span></h2>
+        <p id="leadE">hoy diste lo mejor</p>
       </div>
 
       <!-- ALIMENTACIÓN -->
@@ -1096,6 +1096,7 @@
     let scoreCache = { scoreV: 0, scoreE: 0 };
     function animateScore(id, val) {
       const el = document.getElementById(id);
+      if (!el) return;
       if (parseInt(el.textContent) === val) return;
       el.textContent = val;
       el.classList.remove('pop');
