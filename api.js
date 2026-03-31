@@ -212,8 +212,8 @@ function renderCalendar() {
     const dayData = historyMap[dateStr];
     
     if (dayData) {
-      const scoreV = Number(dayData.valen?.total) || 0;
-      const scoreE = Number(dayData.el?.total) || 0;
+      const scoreV = dayData.valen ? (Number(dayData.valen.total) || 0) : 0;
+      const scoreE = dayData.el ? (Number(dayData.el.total) || 0) : 0;
       
       if (scoreV > scoreE) {
         cellClass += ' winner-valen';
@@ -236,11 +236,11 @@ function renderCalendar() {
 }
 
 function showDayDetail(dateStr) {
-  const dayData = window.historicoDias?.find(r => r.fecha === dateStr);
+  const dayData = window.historicoDias ? window.historicoDias.find(r => r.fecha === dateStr) : null;
   if (!dayData) return;
   
-  const scoreV = Number(dayData.valen?.total) || 0;
-  const scoreE = Number(dayData.el?.total) || 0;
+  const scoreV = dayData.valen ? (Number(dayData.valen.total) || 0) : 0;
+  const scoreE = dayData.el ? (Number(dayData.el.total) || 0) : 0;
   
   let winnerText = 'Empate 🤝';
   if (scoreV > scoreE) winnerText = 'Ganó Valen 🌹';
@@ -250,6 +250,9 @@ function showDayDetail(dateStr) {
   const dateFormatted = parts.length === 3 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr;
   
   const content = document.getElementById('day-detail-content');
+  const dv = dayData.valen || {};
+  const de = dayData.el || {};
+
   content.innerHTML = `
     <div style="margin-bottom: 2rem; text-align: center;">
       <h3 style="font-family: 'Playfair Display', serif; color: var(--ink-dark); font-size: 1.5rem; margin-bottom: 0.5rem; margin-top: 0;">${dateFormatted}</h3>
@@ -261,14 +264,14 @@ function showDayDetail(dateStr) {
         <h4 style="text-align: center; color: #b5625a; margin: 0 0 1rem 0;">Valen</h4>
         <div style="text-align: center; font-size: 2rem; font-weight: bold; color: #b5625a; margin-bottom: 1rem;">${scoreV}</div>
         <div style="font-size: 0.85rem; color: var(--ink-core);">
-           <p style="margin: 0.3rem 0;"><strong>Desayuno:</strong> ${translateChoice(dayData.valen?.desayuno)}</p>
-           <p style="margin: 0.3rem 0;"><strong>Almuerzo:</strong> ${translateChoice(dayData.valen?.almuerzo)}</p>
-           <p style="margin: 0.3rem 0;"><strong>Merienda:</strong> ${translateChoice(dayData.valen?.merienda)}</p>
-           <p style="margin: 0.3rem 0;"><strong>Cena:</strong> ${translateChoice(dayData.valen?.cena)}</p>
-           <p style="margin: 0.3rem 0;"><strong>Sin Postre:</strong> ${!isTrue(dayData.valen?.postre) ? 'Sí 👏' : 'No 🍰'}</p>
-           <p style="margin: 0.3rem 0;"><strong>Ejercicio:</strong> ${isTrue(dayData.valen?.ejercicio) ? 'Sí 🏃' : 'No'}</p>
-           <p style="margin: 0.3rem 0;"><strong>Aprendí:</strong> ${isTrue(dayData.valen?.aprendi) ? 'Sí 📖' : 'No'}</p>
-           <p style="margin: 0.3rem 0;"><strong>Trabajo:</strong> ${isTrue(dayData.valen?.trabajo) ? 'Sí 💼' : 'No'}</p>
+           <p style="margin: 0.3rem 0;"><strong>Desayuno:</strong> ${translateChoice(dv.desayuno)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Almuerzo:</strong> ${translateChoice(dv.almuerzo)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Merienda:</strong> ${translateChoice(dv.merienda)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Cena:</strong> ${translateChoice(dv.cena)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Sin Postre:</strong> ${!isTrue(dv.postre) ? 'Sí 👏' : 'No 🍰'}</p>
+           <p style="margin: 0.3rem 0;"><strong>Ejercicio:</strong> ${isTrue(dv.ejercicio) ? 'Sí 🏃' : 'No'}</p>
+           <p style="margin: 0.3rem 0;"><strong>Aprendí:</strong> ${isTrue(dv.aprendi) ? 'Sí 📖' : 'No'}</p>
+           <p style="margin: 0.3rem 0;"><strong>Trabajo:</strong> ${isTrue(dv.trabajo) ? 'Sí 💼' : 'No'}</p>
         </div>
       </div>
       
@@ -276,30 +279,30 @@ function showDayDetail(dateStr) {
         <h4 style="text-align: center; color: #8aa878; margin: 0 0 1rem 0;">Él</h4>
         <div style="text-align: center; font-size: 2rem; font-weight: bold; color: #8aa878; margin-bottom: 1rem;">${scoreE}</div>
         <div style="font-size: 0.85rem; color: var(--ink-core);">
-           <p style="margin: 0.3rem 0;"><strong>Desayuno:</strong> ${translateChoice(dayData.el?.desayuno)}</p>
-           <p style="margin: 0.3rem 0;"><strong>Almuerzo:</strong> ${translateChoice(dayData.el?.almuerzo)}</p>
-           <p style="margin: 0.3rem 0;"><strong>Merienda:</strong> ${translateChoice(dayData.el?.merienda)}</p>
-           <p style="margin: 0.3rem 0;"><strong>Cena:</strong> ${translateChoice(dayData.el?.cena)}</p>
-           <p style="margin: 0.3rem 0;"><strong>Sin Postre:</strong> ${!isTrue(dayData.el?.postre) ? 'Sí 👏' : 'No 🍰'}</p>
-           <p style="margin: 0.3rem 0;"><strong>Ejercicio:</strong> ${isTrue(dayData.el?.ejercicio) ? 'Sí 🏃' : 'No'}</p>
-           <p style="margin: 0.3rem 0;"><strong>Aprendí:</strong> ${isTrue(dayData.el?.aprendi) ? 'Sí 📖' : 'No'}</p>
-           <p style="margin: 0.3rem 0;"><strong>Trabajo:</strong> ${isTrue(dayData.el?.trabajo) ? 'Sí 💼' : 'No'}</p>
+           <p style="margin: 0.3rem 0;"><strong>Desayuno:</strong> ${translateChoice(de.desayuno)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Almuerzo:</strong> ${translateChoice(de.almuerzo)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Merienda:</strong> ${translateChoice(de.merienda)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Cena:</strong> ${translateChoice(de.cena)}</p>
+           <p style="margin: 0.3rem 0;"><strong>Sin Postre:</strong> ${!isTrue(de.postre) ? 'Sí 👏' : 'No 🍰'}</p>
+           <p style="margin: 0.3rem 0;"><strong>Ejercicio:</strong> ${isTrue(de.ejercicio) ? 'Sí 🏃' : 'No'}</p>
+           <p style="margin: 0.3rem 0;"><strong>Aprendí:</strong> ${isTrue(de.aprendi) ? 'Sí 📖' : 'No'}</p>
+           <p style="margin: 0.3rem 0;"><strong>Trabajo:</strong> ${isTrue(de.trabajo) ? 'Sí 💼' : 'No'}</p>
         </div>
       </div>
     </div>
     
-    ${dayData.valen?.agradezco || dayData.el?.agradezco ? `
+    ${dv.agradezco || de.agradezco ? `
     <div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
        <h4 style="color: var(--olive-dark); margin: 0 0 1rem 0;">🌿 Agradecimientos</h4>
-       ${dayData.valen?.agradezco ? `<p style="font-size:0.9rem; margin-bottom: 1rem;"><strong>Valen:</strong><br>${dayData.valen.agradezco}</p>` : ''}
-       ${dayData.el?.agradezco ? `<p style="font-size:0.9rem; margin-bottom: 0;"><strong>Él:</strong><br>${dayData.el.agradezco}</p>` : ''}
+       ${dv.agradezco ? `<p style="font-size:0.9rem; margin-bottom: 1rem;"><strong>Valen:</strong><br>${dv.agradezco}</p>` : ''}
+       ${de.agradezco ? `<p style="font-size:0.9rem; margin-bottom: 0;"><strong>Él:</strong><br>${de.agradezco}</p>` : ''}
     </div>` : ''}
     
-    ${dayData.valen?.manana || dayData.el?.manana ? `
+    ${dv.manana || de.manana ? `
     <div style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
        <h4 style="color: var(--olive-dark); margin: 0 0 1rem 0;">✨ Para Mañana</h4>
-       ${dayData.valen?.manana ? `<p style="font-size:0.9rem; margin-bottom: 1rem;"><strong>Valen:</strong><br>${dayData.valen.manana}</p>` : ''}
-       ${dayData.el?.manana ? `<p style="font-size:0.9rem; margin-bottom: 0;"><strong>Él:</strong><br>${dayData.el.manana}</p>` : ''}
+       ${dv.manana ? `<p style="font-size:0.9rem; margin-bottom: 1rem;"><strong>Valen:</strong><br>${dv.manana}</p>` : ''}
+       ${de.manana ? `<p style="font-size:0.9rem; margin-bottom: 0;"><strong>Él:</strong><br>${de.manana}</p>` : ''}
     </div>` : ''}
     
     <div style="text-align: center;">

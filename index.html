@@ -1059,8 +1059,10 @@
         if (state.valen[m] === 'yes') fv++;
         if (state.el[m] === 'yes') fe++;
       });
-      document.getElementById('foodPtsV').textContent = fv + ' / 4 pts';
-      document.getElementById('foodPtsE').textContent = fe + ' / 4 pts';
+      const foodPtsVEl = document.getElementById('foodPtsV');
+      if (foodPtsVEl) foodPtsVEl.textContent = fv + ' / 4 pts';
+      const foodPtsEEl = document.getElementById('foodPtsE');
+      if (foodPtsEEl) foodPtsEEl.textContent = fe + ' / 4 pts';
 
       // totals
       animateScore('scoreV', sv);
@@ -1074,19 +1076,20 @@
       const getRandomFrase = () => frasesLindas[Math.floor(Math.random() * frasesLindas.length)];
 
       if (sv > se) { 
-        lv.textContent = '¡Va ganando! 🏆 ¡Ve y diviértete! ✨'; 
-        le.textContent = getRandomFrase(); 
+        if(lv) lv.textContent = '¡Va ganando! 🏆 ¡Ve y diviértete! ✨'; 
+        if(le) le.textContent = getRandomFrase(); 
       }
       else if (se > sv) { 
-        le.textContent = '¡Va ganando! 🏆 ¡Ve y diviértete! ✨'; 
-        lv.textContent = getRandomFrase(); 
+        if(le) le.textContent = '¡Va ganando! 🏆 ¡Ve y diviértete! ✨'; 
+        if(lv) lv.textContent = getRandomFrase(); 
       }
       else if (sv > 0 || se > 0) { 
-        lv.textContent = '¡Empate! 🤝'; 
-        le.textContent = '¡Empate! 🤝'; 
+        if(lv) lv.textContent = '¡Empate! 🤝'; 
+        if(le) le.textContent = '¡Empate! 🤝'; 
       }
       else {
-        lv.textContent = ''; le.textContent = '';
+        if(lv) lv.textContent = ''; 
+        if(le) le.textContent = '';
       }
     }
 
